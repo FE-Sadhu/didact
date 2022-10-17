@@ -1,4 +1,4 @@
-import { createFiber, HOST_ROOT, OTHER_TAG } from "./fiber.js";
+import { createFiber, HOST_ROOT } from "./fiber.js";
 
 function render(reactElement, container) {
   // 设置下一个工作单元
@@ -13,7 +13,7 @@ function render(reactElement, container) {
 }
 
 function createDomFromFiber(fiber) {
-  const dom = fiber.type === 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(reactElement.type);
+  const dom = fiber.type === 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(fiber.type);
 
   Object.keys(fiber.props)
   .filter(key => key !== 'children')
@@ -53,7 +53,7 @@ function performUnitOfWork(fiber) {
   }
 
   if (fiber.parent) {
-    fiber.parent.dom.appendChild(dom);
+    fiber.parent.dom.appendChild(fiber.dom);
   }
 
   // 2. 为当前 fiber 节点的子 element 创建 fiber ，并连接起来
@@ -68,7 +68,7 @@ function performUnitOfWork(fiber) {
       type: element.type,
       props: element.props,
       parent: fiber,
-    })
+    }) 
 
     if (index === 0) {
       // 第一个子节点才是父节点的 child
@@ -86,11 +86,12 @@ function performUnitOfWork(fiber) {
     return fiber.child;
   }
 
-  while(fiber) {
-    if (fiber.sibling) {
-      return fiber.sibling;
+  let nextFiber = fiber;
+  while(nextFiber) {
+    if (nextFiber.sibling) {
+      return nextFiber.sibling;
     }
-    fiber = fiber.sibling;
+    nextFiber = nextFiber.parent;
   }
 }
 
