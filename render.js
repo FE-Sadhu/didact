@@ -1,3 +1,4 @@
+import { commitRoot } from "./commit.js";
 import { createFiber, HOST_ROOT } from "./fiber.js";
 
 function render(reactElement, container) {
@@ -5,11 +6,12 @@ function render(reactElement, container) {
   const props = {
     children: [reactElement]
   }
-  nextUnitOfWork = createFiber({
+  wipRoot = createFiber({
     type: HOST_ROOT, 
     dom: container, 
     props
   });
+  nextUnitOfWork = wipRoot;
 }
 
 function createDomFromFiber(fiber) {
@@ -32,6 +34,8 @@ function createDomFromFiber(fiber) {
 requestIdleCallback(workLoop)
 
 let nextUnitOfWork = null // 每个 element 对应一个 fiber ，每个 fiber 就是一个工作单元
+export let wipRoot = null; // Work In Progress 树，目的是等到所有 Fiber 节点处理完再 commit 挂载
+
 
 function workLoop(deadline) {
   let shouldYield = false
@@ -42,6 +46,13 @@ function workLoop(deadline) {
     // timeRemaining() 拿到浏览器闲置的剩余毫秒数
     shouldYield = deadline.timeRemaining() < 1
   }
+
+  // 当没有下一个工作单元时，就可提交到 DOM 上了
+  if (!nextUnitOfWork && wipRoot) {
+    commitRoot();
+    wipRoot = null;
+  }
+
   requestIdleCallback(workLoop)
 }
 
@@ -50,10 +61,6 @@ function performUnitOfWork(fiber) {
   // 1. 为当前 fiber 节点创建 DOM 节点
   if (!fiber.dom) {
     fiber.dom = createDomFromFiber(fiber);
-  }
-
-  if (fiber.parent) {
-    fiber.parent.dom.appendChild(fiber.dom);
   }
 
   // 2. 为当前 fiber 节点的子 element 创建 fiber ，并连接起来
