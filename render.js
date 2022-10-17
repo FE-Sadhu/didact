@@ -34,7 +34,8 @@ function createDomFromFiber(fiber) {
 requestIdleCallback(workLoop)
 
 let nextUnitOfWork = null // 每个 element 对应一个 fiber ，每个 fiber 就是一个工作单元
-export let wipRoot = null; // Work In Progress 树，目的是等到所有 Fiber 节点处理完再 commit 挂载
+export let wipRoot = null; // Work In Progress 树，目的是等到所有 Fiber 节点处理完再 commit 挂载，还有 update 时 diff
+let currentRoot = null; // 挂载完后的 WIP 树赋给 currentRoot
 
 
 function workLoop(deadline) {
@@ -50,6 +51,7 @@ function workLoop(deadline) {
   // 当没有下一个工作单元时，就可提交到 DOM 上了
   if (!nextUnitOfWork && wipRoot) {
     commitRoot();
+    currentRoot = wipRoot
     wipRoot = null;
   }
 
