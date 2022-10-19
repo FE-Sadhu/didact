@@ -87,24 +87,49 @@ function performUnitOfWork(fiber) {
 
 function reconcileChildren(wipFiber, elements) {
   let index = 0;
+  let oldFiber = wipFiber.alternate && wipFiber.alternate.child;
   let prevSibling = null;
-  while(index < elements.length) {
-    const child = elements[index];
 
+  while(index < elements.length || oldFiber !== null) {
+    const childElement = elements[index];
+    let NewFiber = null;
+    // 这里的实现其实是按着遍历顺序去对比 旧 Fiber 和 新 element 的，
+    // 其实真正实现得按照旧 fiber 的 key 去找新 element ，找到了再对比 type，找不到直接删
+  
+    const sameType =
+      oldFiber && // 旧 fiber 存在
+      childElement && // 子元素也存在
+      childElement.type == oldFiber.type // 类型一样
+
+      // 可以复用 DOM ，只需要改 props 就行
+      if (sameType) {
+        newFib/
+      }
+
+      // 子元素存在，但没有对应旧 fiber 或 对应旧 fiber 的 type 不一样，需要新增一个 fiber 节点
+      if (childElement && !sameType) {
+        
+      }
+
+      // 旧 fiber 存在，但没有对应的新子元素 或 对应子元素的 type 变了，需要删除旧 fiber 节点
+      if (oldFiber && !sameType) {
+
+      }
     const NewFiber = createFiber({
       type: child.type,
       props: child.props,
       parent: wipFiber,
     }) 
 
+    if (oldFiber) {
+      oldFiber = oldFiber.sibling;
+    }
     if (index === 0) {
       // 第一个子节点才是父节点的 child
       wipFiber.child = NewFiber;
-      NewFiber.alternate = wipFiber.alternate.child;
     } else {
       // 之后的兄弟节点靠 sibling 连接
       prevSibling.sibling = NewFiber;
-      NewFiber.alternate = prevSibling.alternate.sibling;
     }
     prevSibling = NewFiber;
     index++;
