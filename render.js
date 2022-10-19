@@ -9,7 +9,8 @@ function render(reactElement, container) {
   wipRoot = createFiber({
     type: HOST_ROOT, 
     dom: container, 
-    props
+    props,
+    alternate: currentRoot,
   });
   nextUnitOfWork = wipRoot;
 }
@@ -67,28 +68,8 @@ function performUnitOfWork(fiber) {
 
   // 2. 为当前 fiber 节点的子 element 创建 fiber ，并连接起来
   const childElements = fiber.props.children;
-  let index = 0;
-  let prevSibling = null;
-
-  while(index < childElements.length) {
-    const element = childElements[index];
-
-    const NewFiber = createFiber({
-      type: element.type,
-      props: element.props,
-      parent: fiber,
-    }) 
-
-    if (index === 0) {
-      // 第一个子节点才是父节点的 child
-      fiber.child = NewFiber;
-    } else {
-      // 之后的兄弟节点靠 sibling 连接
-      prevSibling.sibling = NewFiber;
-    }
-    prevSibling = NewFiber;
-    index++;
-  }
+  reconcileChildren(fiber, childElements);
+ 
 
   // 3. 找出下一个工作单元并返回
   if (fiber.child) {
@@ -104,5 +85,29 @@ function performUnitOfWork(fiber) {
   }
 }
 
+function reconcileChildren(wipFiber, elements) {
+  let index = 0;
+  let prevSibling = null;
+  while(index < elements.length) {
+    const child = elements[index];
 
+    const NewFiber = createFiber({
+      type: child.type,
+      props: child.props,
+      parent: wipFiber,
+    }) 
+
+    if (index === 0) {
+      // 第一个子节点才是父节点的 child
+      wipFiber.child = NewFiber;
+      NewFiber.alternate = wipFiber.alternate.child;
+    } else {
+      // 之后的兄弟节点靠 sibling 连接
+      prevSibling.sibling = NewFiber;
+      NewFiber.alternate = prevSibling.alternate.sibling;
+    }
+    prevSibling = NewFiber;
+    index++;
+  }
+}
 export default render;
