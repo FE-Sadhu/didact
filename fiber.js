@@ -7,7 +7,8 @@ export const createFiber = ({
   parent,
   child, 
   sibling,
-  alternate
+  alternate,
+  effectTag
   }) => {
   return {
     type,
@@ -16,6 +17,7 @@ export const createFiber = ({
     parent,
     child,
     sibling,
-    alternate
+    alternate,
+    effectTag // 表示 commit 阶段要做什么事
   }
 }
