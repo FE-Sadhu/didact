@@ -41,7 +41,7 @@ requestIdleCallback(workLoop);
 let nextUnitOfWork = null; // 每个 element 对应一个 fiber ，每个 fiber 就是一个工作单元
 export let wipRoot = null; // Work In Progress 树，目的是等到所有 Fiber 节点处理完再 commit 挂载，还有 update 时 diff
 let currentRoot = null; // 挂载完后的 WIP 树赋给 currentRoot
-let deletions = null; // 保存要删除的 旧 Fiber ，但是 commit 的是 wip tree，所以需要保存进这个数组
+export let deletions = null; // 保存要删除的 旧 Fiber ，但是 commit 的是 wip tree，所以需要保存进这个数组
 
 function workLoop(deadline) {
   let shouldYield = false;
@@ -114,7 +114,7 @@ function reconcileChildren(wipFiber, elements) {
       });
     }
 
-    // 子元素存在，但没有对应旧 fiber 或 对应旧 fiber 的 type 不一样，需要新增一个 fiber 节点
+    // 子元素存在，但没有对应旧 fiber 或 对应旧 fiber 的 type 不一样，需要新创建一个 DOM 节点
     if (childElement && !sameType) {
       newFiber = createFiber({
         type: childElement.type,
@@ -126,7 +126,7 @@ function reconcileChildren(wipFiber, elements) {
       });
     }
 
-    // 旧 fiber 存在，但没有对应的新子元素 或 对应子元素的 type 变了，需要删除旧 fiber 节点
+    // 旧 fiber 存在，但没有对应的新子元素 或 对应子元素的 type 变了，需要删除旧 fiber 对应 DOM 节点
     if (oldFiber && !sameType) {
       oldFiber.effectTag = "DELETION";
       deletions.push(oldFiber);
