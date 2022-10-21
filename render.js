@@ -116,7 +116,7 @@ function reconcileChildren(wipFiber, elements) {
 
     // 子元素存在，但没有对应旧 fiber 或 对应旧 fiber 的 type 不一样，需要新创建一个 DOM 节点
     if (childElement && !sameType) {
-      newFiber = createFiber({
+      NewFiber = createFiber({
         type: childElement.type,
         props: childElement.props,
         dom: null,
