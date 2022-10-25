@@ -71,7 +71,7 @@ function performUnitOfWork(fiber) {
   } else {
     updateHostComponent(fiber)
   }
-  
+
   // 3. 找出下一个工作单元并返回
   if (fiber.child) {
     return fiber.child;
@@ -91,7 +91,7 @@ function updateFunctionComponent(fiber) {
   const children = [fiber.type(fiber.props)]
   reconcileChildren(fiber, children)
 }
-​
+
 function updateHostComponent(fiber) {
    // 1. 为当前 fiber 节点创建 DOM 节点
    if (!fiber.dom) {
