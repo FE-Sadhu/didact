@@ -63,15 +63,15 @@ function workLoop(deadline) {
 
 // 执行当前 unit 并返回下一个 unit
 function performUnitOfWork(fiber) {
-  // 1. 为当前 fiber 节点创建 DOM 节点
-  if (!fiber.dom) {
-    fiber.dom = createDomFromFiber(fiber);
+  // 函数组件的 fiber 没有 dom 属性
+  // 函数组件的 children 不是从 prop 取得，而是 execute 获得
+  const isFunctionComponent = fiber.type instanceof Function
+  if (isFunctionComponent) {
+    updateFunctionComponent(fiber)
+  } else {
+    updateHostComponent(fiber)
   }
-
-  // 2. 为当前 fiber 节点的子 element 创建 fiber ，并连接在 WIP 树
-  const childElements = fiber.props.children;
-  reconcileChildren(fiber, childElements);
-
+  
   // 3. 找出下一个工作单元并返回
   if (fiber.child) {
     return fiber.child;
@@ -84,6 +84,22 @@ function performUnitOfWork(fiber) {
     }
     nextFiber = nextFiber.parent;
   }
+}
+
+
+function updateFunctionComponent(fiber) {
+  const children = [fiber.type(fiber.props)]
+  reconcileChildren(fiber, children)
+}
+​
+function updateHostComponent(fiber) {
+   // 1. 为当前 fiber 节点创建 DOM 节点
+   if (!fiber.dom) {
+    fiber.dom = createDomFromFiber(fiber);
+  }
+  // 2. 为当前 fiber 节点的子 element 创建 fiber ，并连接在 WIP 树
+  const childElements = fiber.props.children;
+  reconcileChildren(fiber, childElements);
 }
 
 function reconcileChildren(wipFiber, elements) {
