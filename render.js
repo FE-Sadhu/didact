@@ -86,8 +86,10 @@ function performUnitOfWork(fiber) {
   }
 }
 
-
 function updateFunctionComponent(fiber) {
+  wipFiber = fiber
+  hookIndex = 0
+  wipFiber.hooks = []
   const children = [fiber.type(fiber.props)]
   reconcileChildren(fiber, children)
 }
@@ -162,4 +164,44 @@ function reconcileChildren(wipFiber, elements) {
     index++;
   }
 }
+
+let wipFiber = null
+let hookIndex = null
+
+export function useState(initial) {
+  // 拿到上一次 Hook 的对象
+  const oldHook =
+    wipFiber.alternate &&
+    wipFiber.alternate.hooks &&
+    wipFiber.alternate.hooks[hookIndex];
+
+  const hook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: [] // 外部可能调用了多次
+  }
+
+  const actions = oldHook ? oldHook.queue : []
+  actions.forEach(action => {
+    hook.state = action(hook.state)
+  })
+
+  const setState = action => {
+    // 把 action 存储起来，不会立即更新
+    hook.queue.push(action)
+    // 赋值下一个工作单元，等到下一个 work loop 时再走 render - commit 流程更新页面
+    wipRoot = {
+      dom: currentRoot.dom,
+      props: currentRoot.props,
+      alternate: currentRoot,
+    }
+    nextUnitOfWork = wipRoot
+    deletions = []
+  }
+
+  wipFiber.hooks.push(hook);
+  hookIndex++;
+
+  return [hook.state, setState];
+}
+
 export default render;
