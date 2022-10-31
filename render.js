@@ -65,6 +65,8 @@ function workLoop(deadline) {
 function performUnitOfWork(fiber) {
   // 函数组件的 fiber 没有 dom 属性
   // 函数组件的 children 不是从 prop 取得，而是 execute 获得
+  // !!注意  instanceof Function 不能区分类组件和函数组件。  此处只是区分函数组件和原生 html 标签。
+  // didact 并未实现类组件相关逻辑
   const isFunctionComponent = fiber.type instanceof Function
   if (isFunctionComponent) {
     updateFunctionComponent(fiber)
